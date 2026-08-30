@@ -9,6 +9,25 @@ type HtmlView = 'source' | 'preview';
 
 const ALL_TRANSFORMERS = [...TRANSFORMERS, TABLE_TRANSFORMER, MENTION_TRANSFORMER];
 
+const LEGACY_FORMAT_TAGS = /<\/?(b|i|s|u)>/g;
+const INLINE_WHITESPACE_STYLE = /\s*style="white-space:\s*pre-wrap;?"/g;
+
+function stripLegacyFormatTags(html: string): string {
+  // Lexical's core exportDOM always double-wraps formatted text, e.g.
+  // <b><strong class="editor-bold">text</strong></b>. The inner element
+  // already carries the format via its class, so the outer legacy tag
+  // is redundant — drop it before storing/displaying.
+  return html.replace(LEGACY_FORMAT_TAGS, '');
+}
+
+function stripInlineWhitespaceStyle(html: string): string {
+  // Lexical inlines style="white-space: pre-wrap" on every text node so
+  // spacing survives outside the editor. white-space inherits, so setting
+  // it once on the rendering container has the same effect — drop the
+  // per-node copies before storing to save space.
+  return html.replace(INLINE_WHITESPACE_STYLE, '');
+}
+
 function prettyPrintHtml(html: string): string {
   const withBreaks = html.replace(/></g, '>\n<');
   const lines = withBreaks.split('\n');
@@ -38,7 +57,7 @@ export default function OutputPanel() {
     const update = () => {
       editor.getEditorState().read(() => {
         setJson(JSON.stringify(editor.getEditorState().toJSON(), null, 2));
-        setHtml($generateHtmlFromNodes(editor, null));
+        setHtml(stripInlineWhitespaceStyle(stripLegacyFormatTags($generateHtmlFromNodes(editor, null))));
         setMarkdown($convertToMarkdownString(ALL_TRANSFORMERS));
       });
     };
