@@ -25,7 +25,7 @@ const theme = {
   list: { ul: 'editor-ul', ol: 'editor-ol', listitem: 'editor-li' },
   link: 'editor-link',
   code: 'editor-code',
-  text: { bold: 'editor-bold', italic: 'editor-italic' },
+  text: { bold: 'editor-bold', italic: 'editor-italic', underline: 'editor-underline' },
   table: 'editor-table',
   tableCell: 'editor-table-cell',
   tableRow: 'editor-table-row',

@@ -2,25 +2,47 @@ import type { DOMExportOutput, LexicalEditor, LexicalNode, TextNode } from 'lexi
 
 const LEGACY_WRAPPER_TAGS = new Set(['B', 'I', 'S', 'U']);
 
+function wrapElement(el: HTMLElement, tag: string): HTMLElement {
+  const wrapper = el.ownerDocument.createElement(tag);
+  wrapper.appendChild(el);
+  return wrapper;
+}
+
 /**
- * TextNode.exportDOM always double-wraps formatted text for legacy client
- * compatibility, e.g. <b><strong class="editor-bold">text</strong></b>, and
- * inlines style="white-space: pre-wrap" on every node. Both are redundant
- * once this app owns the render CSS (the inner element's class already
- * carries the format, and white-space inherits from a container rule).
- * Registered via initialConfig.html.export so it runs in place of the
- * default TextNode export, without the class-identity pitfalls of full
- * node replacement (see https://lexical.dev/docs/concepts/node-replacement).
+ * TextNode.exportDOM builds a base <strong>/<em>/<span> element (tag picked
+ * by format priority, classed via theme) and then wraps it again in legacy
+ * <b>/<i>/<s>/<u> tags for client compatibility — so bold alone comes out as
+ * <b><strong class="editor-bold">text</strong></b>, a duplicate representation
+ * of the same format. This rebuilds the wrapper chain to emit exactly one
+ * legacy tag per active format, nested consistently (b > i > u > s), e.g.
+ * bold+italic+underline -> <b><i><u>text</u></i></b>. Registered via
+ * initialConfig.html.export in place of the default TextNode export.
  */
 export function exportCleanTextNode(editor: LexicalEditor, node: LexicalNode): DOMExportOutput {
-  const { element } = (node as TextNode).exportDOM(editor);
+  const textNode = node as TextNode;
+  const { element } = textNode.exportDOM(editor);
   if (!(element instanceof HTMLElement)) return { element };
 
-  let inner = element;
-  while (LEGACY_WRAPPER_TAGS.has(inner.tagName) && inner.children.length === 1) {
-    inner = inner.children[0] as HTMLElement;
+  let core = element;
+  while (LEGACY_WRAPPER_TAGS.has(core.tagName) && core.children.length === 1) {
+    core = core.children[0] as HTMLElement;
   }
-  inner.style.removeProperty('white-space');
+  core.style.removeProperty('white-space');
 
-  return { element: inner };
+  if (core.tagName === 'STRONG' || core.tagName === 'EM') {
+    const span = core.ownerDocument.createElement('span');
+    span.className = core.className;
+    const style = core.getAttribute('style');
+    if (style) span.setAttribute('style', style);
+    span.append(...Array.from(core.childNodes));
+    core = span;
+  }
+
+  let wrapped: HTMLElement = core;
+  if (textNode.hasFormat('underline')) wrapped = wrapElement(wrapped, 'u');
+  if (textNode.hasFormat('italic')) wrapped = wrapElement(wrapped, 'i');
+  if (textNode.hasFormat('bold')) wrapped = wrapElement(wrapped, 'b');
+  if (textNode.hasFormat('strikethrough')) wrapped = wrapElement(wrapped, 's');
+
+  return { element: wrapped };
 }

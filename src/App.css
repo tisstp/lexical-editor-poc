@@ -81,6 +81,7 @@ body { margin: 0; background: #f5f5f7; font-family: system-ui, sans-serif; color
 }
 .editor-bold { font-weight: 700; }
 .editor-italic { font-style: italic; }
+.editor-underline { text-decoration: underline; }
 
 .editor-table { border-collapse: collapse; margin: 8px 0; }
 .editor-table-cell, .editor-table-row { border: 1px solid #d8d8dc; }

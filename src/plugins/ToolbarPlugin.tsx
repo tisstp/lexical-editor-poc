@@ -24,6 +24,7 @@ export default function ToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
@@ -32,6 +33,7 @@ export default function ToolbarPlugin() {
         if ($isRangeSelection(selection)) {
           setIsBold(selection.hasFormat('bold'));
           setIsItalic(selection.hasFormat('italic'));
+          setIsUnderline(selection.hasFormat('underline'));
         }
       });
     });
@@ -111,6 +113,7 @@ export default function ToolbarPlugin() {
     <div className="toolbar">
       <button className={isBold ? 'active' : ''} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')}>B</button>
       <button className={isItalic ? 'active' : ''} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')}>I</button>
+      <button className={isUnderline ? 'active' : ''} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')}>U</button>
       <span className="sep" />
       <button onClick={formatParagraph}>P</button>
       <button onClick={() => formatHeading('h1')}>H1</button>
