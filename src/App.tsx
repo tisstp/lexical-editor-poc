@@ -1,3 +1,4 @@
+import { TextNode } from 'lexical';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -12,6 +13,7 @@ import { LinkNode } from '@lexical/link';
 import { CodeNode } from '@lexical/code';
 import { TableNode, TableRowNode, TableCellNode } from '@lexical/table';
 import { MentionNode } from './nodes/MentionNode';
+import { exportCleanTextNode } from './nodes/exportCleanTextNode';
 import ToolbarPlugin from './plugins/ToolbarPlugin';
 import MentionsPlugin from './plugins/MentionsPlugin';
 import OutputPanel from './plugins/OutputPanel';
@@ -49,6 +51,9 @@ const initialConfig = {
     TableCellNode,
     MentionNode,
   ],
+  html: {
+    export: new Map([[TextNode, exportCleanTextNode]]),
+  },
 };
 
 function App() {
